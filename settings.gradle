@@ -17,3 +17,6 @@ include 'services:webservice'
 */
 
 rootProject.name = 'gradle-releaser-test'
+include 'lib1'
+include 'lib2'
+
