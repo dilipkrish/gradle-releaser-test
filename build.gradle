@@ -1,6 +1,7 @@
 buildscript {
 
     repositories {
+        mavenLocal()
         maven {
             url "http://nexus.containerstore.com/nexus/content/repositories/public/"
         }
@@ -9,7 +10,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath("com.containerstore.release:gradle-releaser:2.3.0")
+        classpath("com.containerstore.release:gradle-releaser:2.4.0-SNAPSHOT")
     }
 }
 
