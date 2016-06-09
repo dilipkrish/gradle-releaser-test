@@ -1,4 +1,6 @@
 apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 sourceCompatibility = 1.8
 
@@ -13,4 +15,84 @@ dependencies {
 release {
     repoOwner = "dilipkrish"
     publishToNexus = true
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'source'
+    from sourceSets.main.allSource
+}
+
+ext {
+    pomMetaData = {
+        resolveStrategy = Closure.DELEGATE_FIRST
+        name "${project.name}"
+        url "https://github.com/dilipkrish/Gradle-Releaser-Test"
+        description "Gradle releaser"
+
+        scm {
+            url 'scm:git:git@github.com:dilipkrish/Gradle-Releaser-test.git'
+            connection 'scm:git:git@github.com:dilipkrish/Gradle-Releaser-test.git'
+            developerConnection 'scm:git:git@github.com:dilipkrish/Gradle-Releaser-test.git'
+        }
+
+        developers {
+            developer {
+                id "ISJavaDevelopers@containerstore.com"
+                name "IS Java Developers"
+                organization "The Container Store"
+                email "ISJavaDevelopers@containerstore.com"
+            }
+        }
+    }
+
+    pomConfig = {
+        def root = asNode()
+        def dependencies = root.dependencies
+        def allDependencies = dependencies.'*'
+
+        allDependencies.findAll() {
+            project.configurations.provided.allDependencies.find { dep ->
+                dep.name == it.artifactId.text()
+            }
+        }.each() {
+            it.scope*.value = 'provided'
+        }
+
+        //Fix issue with maven-publish plugin setting compile deps to runtime
+        allDependencies.findAll() {
+            it.scope.text() == 'runtime' && project.configurations.compile.allDependencies.find { dep ->
+                dep.name == it.artifactId.text()
+            }
+        }.each() {
+            it.scope*.value = 'compile'
+        }
+
+        allDependencies
+                .findAll { it.artifactId.text() == 'groovy-all' }
+                .each { it.scope*.value = 'test' }
+
+
+        root.children().last() + pomMetaData
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url "http://nexus.containerstore.com/nexus/content/repositories/releases/"
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            groupId "${group}"
+            from components.java
+
+            artifact sourcesJar {
+                classifier "sources"
+            }
+
+            pom.withXml pomConfig
+        }
+    }
 }
