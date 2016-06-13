@@ -14,7 +14,6 @@ dependencies {
 
 release {
     repoOwner = "dilipkrish"
-    publishToNexus = true
 }
 
 task sourcesJar(type: Jar) {
